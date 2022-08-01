@@ -1,4 +1,4 @@
-# overlays
+# Overlays
 
 OBS Fighting Game Overlays
 
@@ -6,25 +6,39 @@ OBS Fighting Game Overlays
 
 Show a progressbar with the total money raised.
 
-![](assets/matcherino-progressbar.png)
-
-Edit the `matcherino/progress.html` file and replace the `campaign` value with the shortlink name of your event:
+Edit the file and replace the `campaign` value with the shortlink name of your event:
 
 ```ts
 const campaign = "pog97";
 ```
+
+### Faded ProgressBar
+
+`matcherino/progress-only-on-donates.html`
+
+![](assets/matcherino-progressbar-fade.gif)
+
+### Fixed ProgressBar
+
+`matcherino/progress.html`
+
+![](assets/matcherino-progressbar.png)
 
 ## Matcherino - Donates
 
 Show an overlay with user donation, avatar and quest type.
 
-![](assets/matcherino-donates.gif)
-
-Edit the `matcherino/donates.html` file and replace the `campaign` value with the shortlink name of your event:
+Edit the file and replace the `campaign` value with the shortlink name of your event:
 
 ```ts
 const campaign = "pog97";
 ```
+
+### Slider
+
+`matcherino/donates.html`
+
+![](assets/matcherino-donates.gif)
 
 ### Collaborators
 
