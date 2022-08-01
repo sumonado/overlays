@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-is@18.2.0/umd/react-is.production.min.js"></script>
+    <script src="https://unpkg.com/styled-components/dist/styled-components.min.js"></script>
+    <script src="https://unpkg.com/axios@1.0.0-alpha.1/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @font-face {
+            font-family: branding;
+            font-weight: bold;
+            src: url("assets/fonts/branding-sf/Branding\ SF\ Narrow\ SemiBold\ It.otf");
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+
+        const campaign = 'pog97'
+
+        const interval = 10 // seconds
+
+        const { useState, useEffect, useMemo } = React
+        const { styled, axios } = window
+        const { keyframes } = styled
+
+        const Wrapper = styled.div`
+            position: relative;
+            overflow: hidden;
+            width: 483px;
+            height: 172px;
+        `
+
+        const slide = keyframes`
+            0%, 100 { left: -483px; }
+            10%, 90% { left: 0; }
+        `
+        const SliderContainer = styled.div`
+            position: absolute;
+            left: -483px;
+            width: 483px;
+            height: 172px;
+            background-image: url("assets/slide.png");
+            animation: ${slide} 10s forwards;
+            animation-direction: alternate;
+            animation-iteration-count: 1;
+        `
+
+        const Avatar = styled.img`
+            position: absolute;
+            border-radius: 50%;
+            width: 116px;
+            margin-left: 7px;
+            margin-top: 29.5px;
+        `
+
+        const TextArea = styled.div`
+            font-family: branding;
+            margin-left: 145px;
+            margin-top: 38px;
+            color: rgb(253, 240, 207);
+        `
+
+        const White = styled.span`
+            color: white;
+        `
+
+        const DisplayName = styled.div`
+            font-size: 36px;
+            letter-spacing: 1px;
+            -webkit-font-smoothing: antialised;
+        `
+
+        const Action = styled.div`
+            font-size: 22px;
+            letter-spacing: 1px;
+            -webkit-font-smoothing: antialised;
+            margin-top: -7px;
+        `
+
+        const PotIncrement = styled.div`
+            font-size: 22px;
+            letter-spacing: 1px;
+            -webkit-font-smoothing: antialised;
+            margin-top: -4px;
+        `
+
+        const Value = styled.span`
+            font-size: 32px;
+            color: white;
+        `
+
+        const Slider = ({ transaction }) => {
+
+            const { action, amount, avatar, displayName } = transaction
+
+            const aliases = useMemo(() => ({
+                'donate': ['fez', 'donate'],
+                'campaign:sponsor': ['patrocinou', 'campanha'],
+                'coupon:use': ['resgatou', 'cupom'],
+            }), [])
+
+            const [verb, noun] = aliases[action]
+
+            const currency = (
+                amount >= 100
+                    ? `${(amount / 100).toFixed(2)} dollar` + (amount > 100 && 's')
+                    : `${amount} cent` + (amount > 1 && 's')
+            )
+
+            return (
+                <SliderContainer>
+                    <Avatar src={avatar} />
+                    <TextArea>
+                        <DisplayName><White>{displayName}</White></DisplayName>
+                        <Action>{verb} <White>1 {noun}</White> e colocou</Action>
+                        <PotIncrement><Value>+{currency}</Value> no pote.</PotIncrement>
+                    </TextArea>
+                </SliderContainer>
+            )
+        }
+
+        const Matcherino = () => {
+
+            const matcherinoURL = `https://matcherino.com/__api`
+
+            const [matcherino, setMatcherino] = useState({})
+            const [transactions, setTransactions] = useState([])
+            const [current, setCurrent] = useState(0)
+            const [transactionsById, setTransactionsById] = useState({})
+
+            const getMatcherino = (name, fn) => {
+                axios
+                    .get(`${matcherinoURL}/bounties/findById?shortlink=${name}`)
+                    .then(({ data }) => fn(data))
+            }
+
+            useEffect(() => {
+                const intervalFn = () => {
+                    getMatcherino(campaign, ({ body }) => setTransactions(body.transactions))
+                }
+
+                intervalFn()
+                const intervalId = setInterval(intervalFn, 1000 * interval)
+
+                return () => clearInterval(intervalId)
+            }, [])
+
+            useEffect(() => {
+                if (transactions.length) {
+                    setTransactionsById(Object.fromEntries(transactions.map(t => [t.id, t])))
+
+                    if (current === 0) {
+                        setCurrent(transactions[0].id)
+                    } else {
+                        const queue = transactions.map(({ id }) => id)
+                        let index = queue.indexOf(current)
+
+                        if (index !== 0) setCurrent(queue[index - 1])
+                    }
+
+                }
+            }, [transactions])
+
+            return (
+                <Wrapper>
+                    {transactionsById[current] && (
+                        <Slider
+                            key={current}
+                            transaction={transactionsById[current]}
+                        />
+                    )}
+                </Wrapper>
+            )
+        }
+
+        const container = document.getElementById('root')
+        ReactDOM.createRoot(container).render(<Matcherino />)
+    </script>
+</body>
+
+</html>
