@@ -6,6 +6,8 @@ OBS Fighting Game Overlays
 
 Show a progressbar with the total money raised.
 
+![](assets/matcherino-progressbar.png)
+
 Edit the `matcherino/progress.html` file and replace the `campaign` value with the shortlink name of your event:
 
 ```ts

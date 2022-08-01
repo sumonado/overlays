@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-is@18.2.0/umd/react-is.production.min.js"></script>
+    <script src="https://unpkg.com/styled-components/dist/styled-components.min.js"></script>
+    <script src="https://unpkg.com/axios@1.0.0-alpha.1/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://unpkg.com/antd@4.22.3/dist/antd.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/antd@4.22.3/dist/antd.min.css" />
+
+    <style>
+        body {
+            margin: 8px;
+        }
+
+        @font-face {
+            font-family: branding;
+            font-weight: bold;
+            src: url("assets/fonts/branding-sf/Branding\ SF\ Narrow\ SemiBold\ It.otf");
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+
+        const campaign = 'pog97'
+
+        const interval = 10 // seconds
+
+        const { useState, useEffect, useMemo } = React
+        const { styled, axios, antd } = window
+        const { keyframes } = styled
+
+        const Wrapper = styled.div`
+            position: relative;
+            overflow: hidden;
+            width: 450px;
+            height: 75px;
+        `
+
+        const ProgressbarContainer = styled.div`
+            position: absolute;
+            width: 450px;
+            height: 75px;
+            background-image: url("assets/progressbar_background.png");
+        `
+
+        const TextArea = styled.div`
+            font-family: branding;
+            margin-left: 369px;
+            margin-top: 11px;
+            color: rgb(253, 240, 207);
+        `
+
+        const Sign = styled.div`
+            display: flex;
+            align-items: flex-end;
+            font-size: 12px;
+            margin-bottom: 2px;
+        `
+
+        const Dollar = styled.div`
+            font-size: 18px;
+        `
+
+        const Cents = styled.div`
+            display: flex;
+            align-items: center;
+            font-size: 10px;
+            margin-top: 3px;
+        `
+
+        const Balance = styled.div`
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+        `
+
+        const Progress = styled.div`
+            display: flex;
+            justify-content: center;
+            font-size: 14px;
+            margin-top: -6px;
+        `
+
+        const Indicator = styled.div`
+            position: absolute;
+            top: 0.5px;
+            left: ${({ percent }) => (percent / 100) * 315}px;
+            width: 76px;
+            height: 74px;
+            background-image: url("assets/progressbar_indicator.png");
+        `
+
+        const CustomProgressbar = styled(antd.Progress)`
+            position: absolute;
+            top: 4px;
+            left: 29px;
+            width: 325px;
+
+            .ant-progress-inner {
+                border-radius: 0px;
+                height: 59px;
+                background-color: transparent;
+            }
+
+            .ant-progress-bg, .ant-progress-success-bg {
+                border-radius: 0px;
+                background-color: rgba(173, 155, 120, 0.75);
+                height: 100% !important;
+            }
+
+            .ant-progress-bg, .ant-progress-success-bg:after {
+                content: ;
+            }
+
+        `
+
+
+        const Progressbar = ({ balance, goal, progress }) => {
+            return (
+                <ProgressbarContainer>
+                    <TextArea>
+                        <CustomProgressbar percent={progress} showInfo={false} />
+                        <Indicator percent={progress} />
+                        <Balance>
+                            <Sign>$</Sign>
+                            <Dollar>{parseInt(balance / 100)}</Dollar>,<Cents>{(balance % 100)}</Cents>
+                        </Balance>
+                        <Progress>({progress.toFixed(0)}%)</Progress>
+                    </TextArea>
+                </ProgressbarContainer>
+            )
+        }
+
+        const Matcherino = () => {
+
+            const matcherinoURL = `https://matcherino.com/__api`
+
+            const [matcherino, setMatcherino] = useState({})
+
+            const [balance, setBalance] = useState(0)
+            const [goal, setGoal] = useState(0)
+            const [progress, setProgress] = useState(0)
+
+            const getMatcherino = (name, fn) => {
+                axios
+                    .get(`${matcherinoURL}/bounties/findById?shortlink=${name}`)
+                    .then(({ data }) => fn(data))
+            }
+
+            useEffect(() => {
+                const intervalFn = () => {
+                    getMatcherino(campaign, ({ body }) => {
+                        setBalance(body.balance)
+                        setGoal(body.meta.goal)
+                    })
+                }
+
+                intervalFn()
+                const intervalId = setInterval(intervalFn, 1000 * interval)
+
+                return () => clearInterval(intervalId)
+            }, [])
+
+            useEffect(() => {
+                if (goal !== 0) {
+                    const progress = (balance / goal) * 100
+                    setProgress(progress)
+                }
+            }, [balance, goal])
+
+            return (
+                <Wrapper>
+                    <Progressbar
+                        balance={balance}
+                        goal={goal}
+                        progress={progress}
+                    />
+                </Wrapper>
+            )
+        }
+
+        const container = document.getElementById('root')
+        ReactDOM.createRoot(container).render(<Matcherino />)
+    </script>
+</body>
+
+</html>
