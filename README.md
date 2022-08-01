@@ -12,9 +12,13 @@ Edit the file and replace the `campaign` value with the shortlink name of your e
 const campaign = "pog97";
 ```
 
+### Slide ProgressBar
+
+`matcherino/progress-slide.html`
+
 ### Faded ProgressBar
 
-`matcherino/progress-only-on-donates.html`
+`matcherino/progress-fade.html`
 
 ![](assets/matcherino-progressbar-fade.gif)
 

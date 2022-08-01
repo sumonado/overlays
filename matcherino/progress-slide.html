@@ -38,7 +38,7 @@
         const interval = 10 // seconds
 
         const { useState, useEffect, useMemo } = React
-        const { styled, axios, antd } = window
+        const { styled, axios } = window
         const { keyframes } = styled
 
         const Wrapper = styled.div`
@@ -48,11 +48,19 @@
             height: 75px;
         `
 
+        const slide = keyframes`
+            0%, 100% { left: -483px; }
+            10%, 90% { left: 0; }
+        `
+
         const ProgressbarContainer = styled.div`
             position: absolute;
             width: 450px;
             height: 75px;
             background-image: url("assets/progressbar_background.png");
+            animation: ${slide} 10s forwards;
+            animation-direction: alternate;
+            animation-iteration-count: 1;
         `
 
         const TextArea = styled.div`
@@ -120,9 +128,7 @@
                 background-color: rgba(243, 235, 219, 0.55);
                 height: 100% !important;
             }
-
         `
-
 
         const Progressbar = ({ balance, goal, progress }) => {
             return (
@@ -144,6 +150,9 @@
             const matcherinoURL = `https://matcherino.com/__api`
 
             const [matcherino, setMatcherino] = useState({})
+            const [transactions, setTransactions] = useState([])
+            const [current, setCurrent] = useState(0)
+            const [transactionsById, setTransactionsById] = useState({})
 
             const [balance, setBalance] = useState(0)
             const [goal, setGoal] = useState(0)
@@ -158,6 +167,7 @@
             useEffect(() => {
                 const intervalFn = () => {
                     getMatcherino(campaign, ({ body }) => {
+                        setTransactions(body.transactions)
                         setBalance(body.balance)
                         setGoal(body.meta.goal)
                     })
@@ -170,6 +180,22 @@
             }, [])
 
             useEffect(() => {
+                if (transactions.length) {
+                    setTransactionsById(Object.fromEntries(transactions.map(t => [t.id, t])))
+
+                    if (current === 0) {
+                        setCurrent(transactions[0].id)
+                    } else {
+                        const queue = transactions.map(({ id }) => id)
+                        let index = queue.indexOf(current)
+
+                        if (index !== 0) setCurrent(queue[index - 1])
+                    }
+
+                }
+            }, [transactions])
+
+            useEffect(() => {
                 if (goal !== 0) {
                     const progress = (balance / goal) * 100
                     setProgress(progress)
@@ -178,11 +204,13 @@
 
             return (
                 <Wrapper>
-                    <Progressbar
-                        balance={balance}
-                        goal={goal}
-                        progress={progress}
-                    />
+                    {transactionsById[current] && (
+                        <Progressbar
+                            balance={balance}
+                            goal={goal}
+                            progress={progress}
+                        />
+                    )}
                 </Wrapper>
             )
         }
