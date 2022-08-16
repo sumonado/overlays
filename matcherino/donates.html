@@ -57,7 +57,9 @@
             animation-iteration-count: 1;
         `
 
-        const Avatar = styled.img`
+        const Avatar = styled.img.attrs(props => ({
+            alt: "",
+        }))`
             position: absolute;
             border-radius: 50%;
             width: 116px;
@@ -77,6 +79,9 @@
         `
 
         const DisplayName = styled.div`
+            width: 240px;
+            text-overflow: ellipsis;
+            overflow: hidden;
             font-size: 36px;
             letter-spacing: 1px;
             -webkit-font-smoothing: antialised;
