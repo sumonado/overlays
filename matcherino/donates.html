@@ -108,38 +108,40 @@
 
         const Slider = ({ transaction }) => {
 
-            const { action, amount, avatar, displayName } = transaction
+            const { entityAction, amount, avatar, creatorDisplayName } = transaction
 
             const aliases = useMemo(() => ({
-                'donate': ['fez', 'donate'],
-                'campaign:sponsor': ['patrocinou', 'campanha'],
-                'coupon:use': ['resgatou', 'cupom'],
+                'sponsor:complete': ['fez', 'missão'],
+                'bounty:contribute': ['fez', 'donate'],
             }), [])
 
-            let [verb, noun] = ['fez', action]
+            let [verb, noun] = ['fez', entityAction]
 
-            const exists = aliases[action]
+            const exists = aliases[entityAction]
 
             if (exists !== undefined) {
                 [verb, noun] = exists
             }
 
+            const cents = amount * 100
+
             const currency = (
-                amount >= 100
-                    ? `${(amount / 100).toFixed(2)} dollar` + (amount > 100 ? 's' : '')
-                    : `${amount} cent` + (amount > 1 ? 's' : '')
+                cents >= 100
+                    ? `${(cents / 100).toFixed(2)} dollar` + (cents > 100 ? 's' : '')
+                    : `${cents} cent` + (cents > 1 ? 's' : '')
             )
 
-            return (
+            return (cents === 0 ? null : (
                 <SliderContainer>
                     <Avatar src={avatar} />
                     <TextArea>
-                        <DisplayName><White>{displayName}</White></DisplayName>
+                        <DisplayName><White>{creatorDisplayName}</White></DisplayName>
                         <Action>{verb} <White>1 {noun}</White> e colocou</Action>
                         <PotIncrement><Value>+{currency}</Value> no pot</PotIncrement>
                     </TextArea>
                 </SliderContainer>
-            )
+            ))
+
         }
 
         const Matcherino = () => {
@@ -151,21 +153,37 @@
             const [current, setCurrent] = useState(0)
             const [transactionsById, setTransactionsById] = useState({})
 
-            const getMatcherino = (name, fn) => {
+            const getContributions = async (fn) => {
+                const response = await axios
+                    .get(`${matcherinoURL}/bounties/findById?shortlink=${campaign}`)
+
+                const bountyId = response.data.body.id
+
+                const avatars = Object.fromEntries(
+                    response.data.body.transactions.map(({userId, avatar}) => [userId, avatar]))
+
                 axios
-                    .get(`${matcherinoURL}/bounties/findById?shortlink=${name}`)
-                    .then(({ data }) => fn(data))
+                    .get(`${matcherinoURL}/events/activities?bountyId=${bountyId}&pageSize=10&page=0`)
+                    .then(({ data }) => {
+                        const withAvatar = data.body.contents.map((activity) => (
+                            {...activity, avatar: avatars[activity.createdBy]}
+                        ))
+                        fn(withAvatar)
+                    })
             }
 
             useEffect(() => {
-                const intervalFn = () => {
-                    getMatcherino(campaign, ({ body }) => setTransactions(body.transactions))
-                }
+                (async () => {
+                    const intervalFn = async () => {
+                        await getContributions((contributions) => setTransactions(contributions))
+                    }
 
-                intervalFn()
-                const intervalId = setInterval(intervalFn, 1000 * interval)
+                    intervalFn()
+                    const intervalId = setInterval(intervalFn, 1000 * interval)
 
-                return () => clearInterval(intervalId)
+                    return () => clearInterval(intervalId)
+                })()
+
             }, [])
 
             useEffect(() => {
