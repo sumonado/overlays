@@ -26,7 +26,7 @@
 
     <script type="text/babel" data-type="module">
 
-        const campaign = 'pog99'
+        const campaign = 'pogfinal8'
 
         const interval = 10 // seconds
 
@@ -59,6 +59,10 @@
 
         const Avatar = styled.img.attrs(props => ({
             alt: "",
+            onError: (event) => {
+                event.target.src = "assets/donates-dummy.png"
+                event.onerror = null
+            }
         }))`
             position: absolute;
             border-radius: 50%;
@@ -70,7 +74,7 @@
         const TextArea = styled.div`
             font-family: branding;
             margin-left: 145px;
-            margin-top: 38px;
+            margin-top: 40px;
             color: rgb(253, 240, 207);
         `
 
@@ -82,27 +86,28 @@
             width: 240px;
             text-overflow: ellipsis;
             overflow: hidden;
-            font-size: 36px;
+            font-size: 28px;
             letter-spacing: 1px;
             -webkit-font-smoothing: antialised;
+            white-space: nowrap;
         `
 
         const Action = styled.div`
-            font-size: 22px;
+            font-size: 20px;
             letter-spacing: 1px;
             -webkit-font-smoothing: antialised;
-            margin-top: -7px;
+            margin-top: 2px;
         `
 
         const PotIncrement = styled.div`
-            font-size: 22px;
+            font-size: 20px;
             letter-spacing: 1px;
             -webkit-font-smoothing: antialised;
             margin-top: -4px;
         `
 
         const Value = styled.span`
-            font-size: 32px;
+            font-size: 26px;
             color: white;
         `
 
@@ -113,6 +118,7 @@
             const aliases = useMemo(() => ({
                 'sponsor:complete': ['fez', 'missão'],
                 'bounty:contribute': ['fez', 'donate'],
+                'bounty:finalize': ['fez', 'contribuição'],
             }), [])
 
             let [verb, noun] = ['fez', entityAction]
@@ -123,6 +129,7 @@
                 [verb, noun] = exists
             }
 
+            const name = creatorDisplayName.replace(" ", "")
             const cents = parseInt(amount * 100)
 
             const currency = (
@@ -135,7 +142,7 @@
                 <SliderContainer>
                     <Avatar src={avatar} />
                     <TextArea>
-                        <DisplayName><White>{creatorDisplayName}</White></DisplayName>
+                        <DisplayName><White>{name}</White></DisplayName>
                         <Action>{verb} <White>1 {noun}</White> e colocou</Action>
                         <PotIncrement><Value>+{currency}</Value> no pot</PotIncrement>
                     </TextArea>
